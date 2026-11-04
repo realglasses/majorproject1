@@ -14,6 +14,7 @@ def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.scroll = ft.ScrollMode.AUTO
+    page.auto_scroll = False
 
     QUIZ_QUESTIONS = [
         "q1",
@@ -136,42 +137,6 @@ def main(page: ft.Page):
 
         page.add(input_fields)
         page.update()
-
-    def render_question(question: str) -> ft.RadioGroup:
-
-
-        radio_group = ft.RadioGroup(
-            content=ft.Row(
-                controls=[
-                    ft.Radio(value=str(i), label=option)
-                    for i, option in enumerate(OPTIONS, 1)
-                ],
-                alignment=ft.MainAxisAlignment.CENTER,
-            ),
-        )
-
-        card = ft.Container(
-            content=ft.Column(
-                controls=[
-                    ft.Text(question),
-                    radio_group,
-                ],
-                spacing=10,
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                tight=True,
-            ),
-            padding=20,
-            border=ft.Border.all(1, ft.Colors.OUTLINE),
-            border_radius=12,
-        )
-
-        page.add(
-            ft.Row(
-                controls=[card],
-                alignment=ft.MainAxisAlignment.CENTER,
-            )
-        )
-        return radio_group
 
     def sign_in() -> None:
         reset_page(page)
@@ -348,17 +313,77 @@ def main(page: ft.Page):
         page.update()
 
         answers = []
+        question_cards = []
+
+        def render_question(question: str) -> tuple:
+            radio_group = ft.RadioGroup(
+                content=ft.Row(
+                    controls=[
+                        ft.Radio(value=str(i), label=option)
+                        for i, option in enumerate(OPTIONS, 1)
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
+            )
+
+            card = ft.Container(
+                content=ft.Column(
+                    controls=[
+                        ft.Text(question),
+                        radio_group,
+                    ],
+                    spacing=10,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    tight=True,
+                ),
+                padding=20,
+                border=ft.Border.all(1, ft.Colors.OUTLINE),
+                border_radius=12,
+            )
+
+            def update_border(e):
+                if radio_group.value is not None:
+                    card.border = ft.Border.all(1, ft.Colors.OUTLINE)
+                    card.update()
+
+            radio_group.on_change = update_border
+
+            row = ft.Row(
+                controls=[card],
+                alignment=ft.MainAxisAlignment.CENTER,
+                key=f"question_{len(question_cards)}",
+            )
+
+            page.add(row)
+            return radio_group, card
 
         for question in QUIZ_QUESTIONS:
-            selected = render_question(question=question)
-            answers.append(selected)
+            radio_group, card = render_question(question=question)
+            answers.append(radio_group)
+            question_cards.append(card)
 
-        def submit(e=None):
-            values = [group.value for group in answers]
+        async def submit(e=None):
+            unanswered = [
+                i for i, group in enumerate(answers) if group.value == None 
+            ]
 
-            if not all(values):
+            for i, card in enumerate(question_cards):
+                if i in unanswered:
+                    card.border = ft.Border.all(5, ft.Colors.RED_700)
+                else:
+                    card.border = ft.Border.all(1, ft.Colors.OUTLINE)
+
+                card.update()
+
+            if unanswered:
+                await page.scroll_to(
+                    scroll_key=f"question_{unanswered[0]}",
+                    duration=500,
+                )
                 show_message(page, "please answer all questions")
                 return
+
+            values = [group.value for group in answers]
 
             for i, question in enumerate(QUIZ_QUESTIONS):
                 data[username][question] = OPTIONS[int(values[i]) - 1]
