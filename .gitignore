@@ -1,0 +1,4 @@
+__pycache/
+*.py[cod]
+.venv/
+profiles.json
