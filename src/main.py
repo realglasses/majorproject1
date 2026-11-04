@@ -1,5 +1,10 @@
+import os           #becuase linux is different
+import sys
+
+if sys.platform.startswith("linux"):
+    os.environ["GDK_BACKEND"] = "x11"
+
 import flet as ft
-import json
 from pathlib import Path
 from functions import *
 
