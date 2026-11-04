@@ -351,7 +351,6 @@ def main(page: ft.Page):
             row = ft.Row(
                 controls=[card],
                 alignment=ft.MainAxisAlignment.CENTER,
-                key=f"question_{len(question_cards)}",
             )
 
             page.add(row)
@@ -362,7 +361,7 @@ def main(page: ft.Page):
             answers.append(radio_group)
             question_cards.append(card)
 
-        async def submit(e=None):
+        def submit(e=None):
             unanswered = [
                 i for i, group in enumerate(answers) if group.value == None 
             ]
@@ -376,10 +375,6 @@ def main(page: ft.Page):
                 card.update()
 
             if unanswered:
-                await page.scroll_to(
-                    scroll_key=f"question_{unanswered[0]}",
-                    duration=500,
-                )
                 show_message(page, "please answer all questions")
                 return
 
