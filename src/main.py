@@ -137,40 +137,41 @@ def main(page: ft.Page):
         page.add(input_fields)
         page.update()
 
-    def render_question(question: str) -> ft.Slider:
-        slider = ft.Slider(
-            min=1,
-            max=5,
-            divisions=4,
-            value=None,
-            label="{value}",
+    def render_question(question: str) -> ft.RadioGroup:
+
+
+        radio_group = ft.RadioGroup(
+            content=ft.Row(
+                controls=[
+                    ft.Radio(value=str(i), label=option)
+                    for i, option in enumerate(OPTIONS, 1)
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
         )
-
-        answer = ft.Text("select and answer")
-
-        def update_answer(e=None):
-            answer.value = OPTIONS[int(e.control.value) - 1]
-            answer.update()
-
-        slider.on_change = update_answer
 
         card = ft.Container(
             content=ft.Column(
                 controls=[
                     ft.Text(question),
-                    slider,
-                    answer,
+                    radio_group,
                 ],
                 spacing=10,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                tight=True,
             ),
             padding=20,
             border=ft.Border.all(1, ft.Colors.OUTLINE),
             border_radius=12,
         )
 
-        page.add(card)
-
-        return slider
+        page.add(
+            ft.Row(
+                controls=[card],
+                alignment=ft.MainAxisAlignment.CENTER,
+            )
+        )
+        return radio_group
 
     def sign_in() -> None:
         reset_page(page)
@@ -353,7 +354,7 @@ def main(page: ft.Page):
             answers.append(selected)
 
         def submit(e=None):
-            values = [slider.value for slider in answers]
+            values = [group.value for group in answers]
 
             if not all(values):
                 show_message(page, "please answer all questions")
@@ -444,13 +445,14 @@ def main(page: ft.Page):
 
         page.floating_action_button = ft.FloatingActionButton(
             content=ft.Text("go back"),
-            on_click=homepage_handler,
+            on_click=lambda e: profile_page(username=username),
         )
 
         page.update()
 
     def view_user(username=None) -> None:
         reset_page(page)
+        data = read_info()
 
         if username == None or username not in data:
             show_message(page, "username error")
@@ -460,8 +462,6 @@ def main(page: ft.Page):
             content=ft.Text("go back"),
             on_click=lambda e: profile_page(username=username),
         )
-
-        data = read_info()
 
         if data == {}:
             show_message(page, "data error")
