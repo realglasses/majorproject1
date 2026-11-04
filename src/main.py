@@ -270,6 +270,7 @@ def main(page: ft.Page):
         )
 
         page.add(title, input_fields)
+        page.update()
 
     def info(username: str = None) -> None:
         reset_page(page)
@@ -380,16 +381,12 @@ def main(page: ft.Page):
     def generate_matches(username: str = None) -> None:
         data = read_info()
 
-        if username == None:
+        if username == None or username not in data:
             show_message(page, "error")
             return
 
         if not all(question in data[username] for question in QUIZ_QUESTIONS):
             show_message(page, "please complete the quiz")
-            return
-
-        if len(data) < 2:
-            show_message(page, "there are no people to match")
             return
 
         values = {
@@ -455,7 +452,7 @@ def main(page: ft.Page):
     def view_user(username=None) -> None:
         reset_page(page)
 
-        if username == None:
+        if username == None or username not in data:
             show_message(page, "username error")
             return
 
@@ -471,6 +468,9 @@ def main(page: ft.Page):
             return
 
         for question in data[username]:
+            if question == "password": 
+                continue
+
             page.add(
                 ft.Text(
                     f"{question}: {data[username][question]}",
