@@ -1,7 +1,7 @@
 import os
 import sys
 
-# Linux-specific GTK backend configuration.
+# fix backend for linux
 if sys.platform.startswith("linux"):
     os.environ["GDK_BACKEND"] = "x11"
 
@@ -17,16 +17,16 @@ def main(page: ft.Page):
     page.auto_scroll = False
 
     QUIZ_QUESTIONS = [
-        "q1",
-        "q2",
-        "q3",
-        "q4",
-        "q5",
-        "q6",
-        "q7",
-        "q8",
-        "q9",
-        "q10",
+    "I prefer planned dates over spontaneous adventures.",
+    "Quality time matters more to me than gifts.",
+    "I love mingling with new people at social events.",
+    "Deep conversations beat casual small talk every time.",
+    "Brutal honesty is better than sparing someone's feelings.",
+    "Splitting bills evenly on early dates is important.",
+    "I'm totally fine with my partner having close friends of their preferred gender.",
+    "Work-life balance is a higher priority for me than career ambition.",
+    "I'd rather stay in with a movie than go out to a loud party.",
+    "A shared sense of humor is my top priority for chemistry."
     ]
 
     OPTIONS = [
@@ -348,6 +348,7 @@ def main(page: ft.Page):
 
             radio_group.on_change = update_border
 
+            #row here is so that the border shrinks to fit
             row = ft.Row(
                 controls=[card],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -369,9 +370,6 @@ def main(page: ft.Page):
             for i, card in enumerate(question_cards):
                 if i in unanswered:
                     card.border = ft.Border.all(5, ft.Colors.RED_700)
-                else:
-                    card.border = ft.Border.all(1, ft.Colors.OUTLINE)
-
                 card.update()
 
             if unanswered:
