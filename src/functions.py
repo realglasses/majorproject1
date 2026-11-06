@@ -15,7 +15,7 @@ def read_info() -> dict:
 def write_info(data) -> None:
     try:
         with open("profiles.json", "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=4)
     except(FileNotFoundError, json.JSONDecodeError):
         Path("profiles.json").touch()
 

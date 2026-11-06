@@ -84,9 +84,9 @@ def main(page: ft.Page):
         def submit(e=None):
             if username_input.value in data:
                 show_message(page, "username taken")
-            elif username_input.value == "":
+            elif not username_input.value.strip():
                 show_message(page, "invalid username")
-            elif password_input.value == "":
+            elif not password_input.value.strip():
                 show_message(page, "invalid password")
             elif password_input.value != confirm_password_input.value:
                 show_message(page, "passwords do not match")
@@ -96,6 +96,7 @@ def main(page: ft.Page):
                 write_info(data)
                 info(username_input.value)
 
+        title = ft.Text("New account", size=50, expand=1)
         username_input = ft.TextField(label="username")
         password_input = ft.TextField(
             label="password",
@@ -135,7 +136,7 @@ def main(page: ft.Page):
             ],
         )
 
-        page.add(input_fields)
+        page.add(title, input_fields)
         page.update()
 
     def sign_in() -> None:
@@ -150,6 +151,7 @@ def main(page: ft.Page):
             else:
                 profile_page_handler(username=username_input.value)
 
+        title = ft.Text("Sign in", size=50, expand=1)
         username_input = ft.TextField(label="username")
         password_input = ft.TextField(
             label="password",
@@ -185,7 +187,7 @@ def main(page: ft.Page):
             ],
         )
 
-        page.add(input_fields)
+        page.add(title, input_fields)
         page.update()
 
     def profile_page(username: str = None) -> None:
@@ -197,7 +199,7 @@ def main(page: ft.Page):
             homepage_handler()
             return
 
-        title = ft.Text(f"hello, {username}", size=50)
+        title = ft.Text(f"Hello, {username}", size=50)
 
         redo_quiz_button = ft.Button(
             content="redo quiz",
@@ -247,19 +249,22 @@ def main(page: ft.Page):
                 first_name_input.value
                 and last_name_input.value
                 and age_input.value
-                and gender_input.value
             ):
                 show_message(page, "please fill all fields")
                 return
 
+            if not(18 <= int(age_input.value) <= 120):
+                show_message(page, "please input valid age")
+                return
+
             data[username]["first name"] = first_name_input.value
             data[username]["last name"] = last_name_input.value
-            data[username]["age"] = age_input.value
-            data[username]["gender"] = gender_input.value
+            data[username]["age"] = int(age_input.value)
 
             write_info(data)
             quiz(username=username)
 
+        title = ft.Text("Input your details", size=50, expand=1)
         first_name_input = ft.TextField(
             label="first name",
             input_filter=ft.InputFilter(regex_string=r"^[a-zA-Z0-9]*$"),
@@ -272,10 +277,6 @@ def main(page: ft.Page):
             label="age",
             input_filter=ft.NumbersOnlyInputFilter(),
         )
-        gender_input = ft.TextField(
-            label="gender",
-            input_filter=ft.InputFilter(regex_string=r"^[a-zA-Z0-9]*$"),
-        )
 
         input_fields = ft.Row(
             controls=[
@@ -286,7 +287,6 @@ def main(page: ft.Page):
                             first_name_input,
                             last_name_input,
                             age_input,
-                            gender_input,
                         ],
                         horizontal_alignment=ft.CrossAxisAlignment.STRETCH,
                     ),
@@ -301,16 +301,82 @@ def main(page: ft.Page):
             on_click=submit,
         )
 
-        page.add(input_fields)
+        page.add(title, input_fields)
         page.update()
 
     def quiz(username: str = None) -> None:
         reset_page(page)
         data = read_info()
 
-        title = ft.Text(value="personality quiz", size=50)
+        title = ft.Text(value="Personality Quiz", size=50)
         page.add(title)
         page.update()
+
+        gender_option = ft.RadioGroup(
+            content=ft.Column(
+                controls=[
+                    ft.Radio(value="male", label="male"),
+                    ft.Radio(value="female", label="female"),
+                    ft.Radio(value="non binary", label="non binary"),
+                    ft.Radio(value="other", label= "other"),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+        )
+        
+        gender_card = ft.Container(
+            content=ft.Column(
+                controls=[
+                    ft.Text("what is your gender"),
+                    gender_option,
+                ],
+                spacing=10,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                tight=True,
+            ),
+            padding=20,
+            border=ft.Border.all(1, ft.Colors.OUTLINE),
+            border_radius=12,
+            width= 600
+        )
+
+        gender_prefer = ft.RadioGroup(
+            content=ft.Column(
+                controls=[
+                    ft.Radio(value="male", label="male"),
+                    ft.Radio(value="female", label="female"),
+                    ft.Radio(value="non binary", label="non binary"),
+                    ft.Radio(value="other", label= "other"),
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
+        )
+        
+        gender_prefer_card = ft.Container(
+            content=ft.Column(
+                controls=[
+                    ft.Text("what is your prefered gender"),
+                    gender_prefer,
+                ],
+                spacing=10,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                tight=True,
+            ),
+            padding=20,
+            border=ft.Border.all(1, ft.Colors.OUTLINE),
+            border_radius=12,
+            width= 600
+        )
+
+
+        def update_border(radio_group, card):
+            if radio_group.value is not None:
+                card.border = ft.Border.all(1, ft.Colors.OUTLINE)
+                card.update()
+
+        gender_option.on_change = lambda e: update_border(gender_option, gender_card)
+        gender_prefer.on_change = lambda e: update_border(gender_prefer, gender_prefer_card)
+        page.add(gender_card, gender_prefer_card)
 
         answers = []
         question_cards = []
@@ -339,6 +405,7 @@ def main(page: ft.Page):
                 padding=20,
                 border=ft.Border.all(1, ft.Colors.OUTLINE),
                 border_radius=12,
+                width= 600
             )
 
             def update_border(e):
@@ -364,17 +431,28 @@ def main(page: ft.Page):
 
         def submit(e=None):
             unanswered = [
-                i for i, group in enumerate(answers) if group.value == None 
+                *[i for i, group in enumerate(answers) if group.value == None ]
             ]
+
+            if gender_option.value is None:
+                gender_card.border = ft.Border.all(5, ft.Colors.RED_700)
+                gender_card.update()
+
+            if gender_prefer.value is None:
+                gender_prefer_card.border = ft.Border.all(5, ft.Colors.RED_700)
+                gender_prefer_card.update()
 
             for i, card in enumerate(question_cards):
                 if i in unanswered:
                     card.border = ft.Border.all(5, ft.Colors.RED_700)
                 card.update()
 
-            if unanswered:
+            if unanswered or gender_prefer.value is None or gender_option.value is None:
                 show_message(page, "please answer all questions")
                 return
+
+            data[username]["gender"] = gender_option.value
+            data[username]["target gender"] = gender_prefer.value
 
             values = [group.value for group in answers]
 
@@ -404,9 +482,16 @@ def main(page: ft.Page):
             show_message(page, "error")
             return
 
-        if not all(question in data[username] for question in QUIZ_QUESTIONS):
-            show_message(page, "please complete the quiz")
-            return
+        #fields req to be full profile
+        required_fields = [
+            *QUIZ_QUESTIONS,
+            "gender",
+            "target gender",
+        ]
+
+        if not all(field in data[username] for field in required_fields):
+                    show_message(page, "please complete your profile and quiz")
+                    return
 
         values = {
             key: value
@@ -420,7 +505,14 @@ def main(page: ft.Page):
             if person == username:
                 continue
 
-            if not all(question in data[person] for question in QUIZ_QUESTIONS):
+            if not all(field in data[person] for field in required_fields):
+                continue
+
+            #rejects if not favourable gender arrangement
+            if data[person]["gender"] != data[username]["target gender"]:
+                continue
+
+            if data[username]["gender"] != data[person]["target gender"]:
                 continue
 
             for question in QUIZ_QUESTIONS:
@@ -433,11 +525,11 @@ def main(page: ft.Page):
                     pass
 
             matches.append((score, person))
-            matches.sort(key=lambda x: x[0], reverse=True)
-
-            # The lambda function ensures that usernames do not affect
-            # the order of matches when scores are tied.
-            matches = matches[:3]
+        matches.sort(key=lambda x: x[0], reverse=True)
+        # the lambda function ensures that usernames do not affect
+        # the order of matches when scores are tied 
+        # (python sorts tuples by next term if collisions occur)
+        matches = matches[:3]
 
         fields = []
 
@@ -445,7 +537,7 @@ def main(page: ft.Page):
             if match[1] == None:
                 continue
 
-            percent_match = round(match[0] / 50 * 100, 2)
+            percent_match = round((match[0]-10) / 40 * 100, 2)
             user = match[1]
             fields.append((user, percent_match))
 
@@ -455,10 +547,32 @@ def main(page: ft.Page):
 
         reset_page(page)
 
+        page.add(ft.Text("Matches", size=50, expand=1))
         for i, match in enumerate(fields, 1):
             page.add(
-                ft.Text(f"match {i}: {match[0]}"),
-                ft.Text(f"percentage match: {match[1]}%"),
+                ft.Row(
+                    controls= [ft.Container(
+                        ft.Column(
+                            controls= [
+                                ft.Text(match[0], size=25, weight=ft.FontWeight.BOLD),
+                                ft.Text(f"{match[1]}% match", size=18), 
+
+                                *[
+                                    ft.Text(f"{question}: {data[match[0]][question]}")
+                                    for question in data[match[0]] if (question != "password" and question not in QUIZ_QUESTIONS)
+                                ]
+                            ],
+                            spacing=10,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            tight=True,
+                        ),
+                        padding=20,
+                        border=ft.Border.all(1, ft.Colors.OUTLINE),
+                        border_radius=12,
+                        width= 500,
+                    )],
+                    alignment= ft.MainAxisAlignment.CENTER
+                )
             )
 
         page.floating_action_button = ft.FloatingActionButton(
@@ -480,10 +594,6 @@ def main(page: ft.Page):
             content=ft.Text("go back"),
             on_click=lambda e: profile_page(username=username),
         )
-
-        if data == {}:
-            show_message(page, "data error")
-            return
 
         for question in data[username]:
             if question == "password": 
