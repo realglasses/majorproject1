@@ -1,6 +1,8 @@
 import os
 import sys
 
+#yo wassup
+
 # fix backend for linux
 if sys.platform.startswith("linux"):
     os.environ["GDK_BACKEND"] = "x11"
